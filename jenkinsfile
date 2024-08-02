@@ -1,0 +1,37 @@
+pipeline{
+    
+    agent any
+    
+    stages{
+        stage("clone code"){
+            steps{
+                echo "cloning the code from github"
+                git url:"https://github.com/shubhamtpatil28/django-notes-app.git",branch:"main"
+            }
+        }
+        
+        stage("Build image"){
+            steps{
+               echo "build the image"
+               sh "docker build -t my-nate-app ."
+            }
+        }
+        
+        stage("Push image"){
+            steps{
+              echo"push image to docker hub" 
+              withCredentials([usernamePassword(credentialsId: 'dockeruser', passwordVariable: 'dockeruserPass', usernameVariable: 'dockeruser')]){
+                  sh "docker tag my-nate-app ${env.dockeruser}/my-nate-app:latest"
+                  sh "docker login -u ${env.dockeruser} -p ${env.dockeruserPass}"
+                  sh "docker push ${env.dockeruser}/my-nate-app:latest"
+              }
+            }
+        }
+        
+        stage("deploy"){
+            steps{
+                echo "deploy the image to the container"
+            }
+        }
+    }
+}
